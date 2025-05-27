@@ -1,6 +1,11 @@
-from sprava_pojistencu import Pojistenec
+from pojistenec import Pojistenec
+from sprava_pojistencu import SpravcePojistencu
 
 class UzivatelskeRozhrani:
+
+    def __init__(self):
+        self.spravce = SpravcePojistencu()
+
     def spustit(self):
         while True:
             print("\nVyberte akci:")
@@ -69,39 +74,39 @@ class UzivatelskeRozhrani:
         vek = self.ziskej_vek()
         telefon = self.ziskej_telefon()
         pojistenec = Pojistenec(jmeno, prijmeni, vek, telefon)
-        print(pojistenec.vloz())
+        print(self.spravce.vloz(pojistenec))
 
     def uprav_pojistence(self):
         jmeno, prijmeni = self.ziskej_jmeno_a_prijmeni()
-        vysledky = Pojistenec.vyhledej(jmeno, prijmeni)
+        vysledky = self.spravce.vyhledej(jmeno, prijmeni)
 
         if vysledky:
             self.zobraz_pojistence(vysledky)
             pojistenec_id = int(input("Zadejte ID pojištěnce, kterého chcete upravit: "))
             sloupec = input("Zadejte název sloupce (jmeno, prijmeni, vek, telefon): ").strip()
             nova_hodnota = input(f"Zadejte novou hodnotu pro '{sloupec}': ").strip()
-            print(Pojistenec.uprav(pojistenec_id, sloupec, nova_hodnota))
+            print(self.spravce.uprav(pojistenec_id, sloupec, nova_hodnota))
         else:
             print("Pojištěnec nebyl nalezen.")
 
     def smaz_pojistence(self):
         jmeno, prijmeni = self.ziskej_jmeno_a_prijmeni()
-        vysledky = Pojistenec.vyhledej(jmeno, prijmeni)
+        vysledky = self.spravce.vyhledej(jmeno, prijmeni)
 
         if vysledky:
             self.zobraz_pojistence(vysledky)
             id_ke_smazani = int(input("Zadejte ID pojištěnce, kterého chcete smazat: "))
-            print(Pojistenec.smaz(id_ke_smazani))
+            print(self.spravce.smaz(id_ke_smazani))
         else:
             print("Pojištěnec nebyl nalezen.")
 
     def vypis_pojistence(self):
-        pojistenec = Pojistenec("", "", 0, "")
-        print(pojistenec.vypis())
+        vysledky = self.spravce.vypis()
+        self.zobraz_pojistence(vysledky)
 
     def vyhledej_pojistence(self):
         jmeno, prijmeni = self.ziskej_jmeno_a_prijmeni()
-        vysledky = Pojistenec.vyhledej(jmeno, prijmeni)
+        vysledky = self.spravce.vyhledej(jmeno, prijmeni)
 
         if vysledky:
             self.zobraz_pojistence(vysledky)

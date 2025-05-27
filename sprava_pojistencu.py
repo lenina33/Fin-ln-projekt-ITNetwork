@@ -1,15 +1,7 @@
 import sqlite3
+from pojistenec import Pojistenec
 
-class Pojistenec:
-    def __init__(self, jmeno, prijmeni, vek, telefon):
-        self.jmeno = jmeno
-        self.prijmeni = prijmeni
-        self.vek = vek
-        self.telefon = telefon
-
-    def __str__(self):
-        return f"{self.jmeno} {self.prijmeni}, Věk:{self.vek}, Telefon {self.telefon}"
-
+class SpravcePojistencu:
     @staticmethod
     def pripoj_se_k_databazi():
         pripojeni = sqlite3.connect('databazepojistenych.db')
@@ -23,20 +15,20 @@ class Pojistenec:
         if pripojeni:
             pripojeni.close()
 
-    def vloz(self):
+    def vloz(self, pojistenec: Pojistenec):
         try:
             #otevření a připojení k databázi
-            pripojeni, komunikace_s_databazi = Pojistenec.pripoj_se_k_databazi()
+            pripojeni, komunikace_s_databazi = SpravcePojistencu.pripoj_se_k_databazi()
 
             #vykonání SQL INSERT
             komunikace_s_databazi.execute('INSERT INTO pojistenci (jmeno, prijmeni, vek, telefon) VALUES (?, ?, ?, ?)',
-                          (self.jmeno, self.prijmeni, self.vek, self.telefon))
+                          (pojistenec.jmeno, pojistenec.prijmeni, pojistenec.vek, pojistenec.telefon))
             #ulozeni zmen
             pripojeni.commit()
 
             #uzavření komunikace a připojení
-            Pojistenec.zavri_databazi(pripojeni, komunikace_s_databazi)
-            return f"Pojištěnec {self.jmeno.capitalize()} {self.prijmeni.capitalize()},{self.vek}, {self.telefon} úspěšně přidán do databáze"
+            SpravcePojistencu.zavri_databazi(pripojeni, komunikace_s_databazi)
+            return f"Pojištěnec {pojistenec.jmeno.capitalize()} {pojistenec.prijmeni.capitalize()},{pojistenec.vek}, {pojistenec.telefon} úspěšně přidán do databáze"
         except Exception as e:
             return f"Nepodařilo se přidat pojištěného: {e}"
 
@@ -51,7 +43,7 @@ class Pojistenec:
         komunikace_s_databazi = None
         try:
             # Připojení a komunikace s databází
-            pripojeni, komunikace_s_databazi = Pojistenec.pripoj_se_k_databazi()
+            pripojeni, komunikace_s_databazi = SpravcePojistencu.pripoj_se_k_databazi()
 
             # Dotaz pro aktualizaci
             uprav_tabulku = f'UPDATE pojistenci SET {sloupec} = ? WHERE pojistenec_id = ?'
@@ -64,7 +56,7 @@ class Pojistenec:
         except Exception as e:
             return f"Nepodařilo se upravit pojištěného: {e}"
         finally:
-            Pojistenec.zavri_databazi(pripojeni, komunikace_s_databazi)
+            SpravcePojistencu.zavri_databazi(pripojeni, komunikace_s_databazi)
 
     @staticmethod
     def vyhledej(jmeno=None, prijmeni=None):
@@ -72,7 +64,7 @@ class Pojistenec:
         komunikace_s_databazi = None
         try:
             # Připojení k databázi
-            pripojeni, komunikace_s_databazi = Pojistenec.pripoj_se_k_databazi()
+            pripojeni, komunikace_s_databazi = SpravcePojistencu.pripoj_se_k_databazi()
 
             # Příprava SQL dotazu
             vyhledani_pojistence = 'SELECT pojistenec_id, jmeno, prijmeni, vek, telefon FROM pojistenci WHERE 1=1'
@@ -90,14 +82,14 @@ class Pojistenec:
         except Exception as e:
             return f"Nepodařilo se vyhledat pojištěného: {e}"
         finally:
-            Pojistenec.zavri_databazi(pripojeni, komunikace_s_databazi)
+            SpravcePojistencu.zavri_databazi(pripojeni, komunikace_s_databazi)
 
     @staticmethod
     def smaz(pojistenec_id):
         pripojeni = None
         komunikace_s_databazi = None
         try:
-            pripojeni, komunikace_s_databazi = Pojistenec.pripoj_se_k_databazi()
+            pripojeni, komunikace_s_databazi = SpravcePojistencu.pripoj_se_k_databazi()
             smazani_radku = 'DELETE FROM pojistenci WHERE pojistenec_id = ?'
             komunikace_s_databazi.execute(smazani_radku, (pojistenec_id,))
             pripojeni.commit()
@@ -109,7 +101,7 @@ class Pojistenec:
                 return f"Nepodařilo se smazat pojištěného: {e}"
 
         finally:
-            Pojistenec.zavri_databazi(pripojeni, komunikace_s_databazi)
+            SpravcePojistencu.zavri_databazi(pripojeni, komunikace_s_databazi)
 
     @staticmethod
     def vypis():
@@ -117,22 +109,14 @@ class Pojistenec:
         komunikace_s_databazi = None
 
         try:
-            pripojeni, komunikace_s_databazi = Pojistenec.pripoj_se_k_databazi()
+            pripojeni, komunikace_s_databazi = SpravcePojistencu.pripoj_se_k_databazi()
             komunikace_s_databazi.execute('SELECT * FROM pojistenci')
-            vysledky = komunikace_s_databazi.fetchall()  # Získání všech výsledků
-
-            # Formátování výsledků do řetězce
-            if vysledky:
-                vypis = "\n".join(
-                    [f"ID: {row[0]}, Jméno: {row[1]}, Příjmení: {row[2]}, Věk: {row[3]}, Telefon: {row[4]}" for row
-                        in vysledky])
-                return f"Výpis pojištěnců:\n{vypis}"
-            else:
-                return "Nebyl nalezen žádný pojištěnec."
+            vysledky = komunikace_s_databazi.fetchall()
+            return vysledky
 
         except Exception as e:
-            return f"Nepodařilo se načíst pojištěnce: {e}"
+            print(f"Nepodařilo se načíst pojištěnce: {e}")
+            return []
 
         finally:
-            Pojistenec.zavri_databazi(pripojeni, komunikace_s_databazi)
-
+            SpravcePojistencu.zavri_databazi(pripojeni, komunikace_s_databazi)
